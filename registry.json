@@ -1,0 +1,36 @@
+{
+  "name": "kesp-ui",
+  "homepage": "https://github.com/yourusername/kesp-ui",
+  "items": [
+    {
+      "name": "aadhaar-input",
+      "type": "registry:ui",
+      "description": "A validated Aadhaar number input with Verhoeff checksum, progress bar, and formatting.",
+      "files": [
+        {
+          "path": "registry/aadhaar-input.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "dependencies": ["lucide-react"],
+      "devDependencies": [],
+      "tailwind": {},
+      "cssVars": {}
+    },
+    {
+      "name": "pan-input",
+      "type": "registry:ui",
+      "description": "A validated PAN Card number input with segment progress bars and format hints.",
+      "files": [
+        {
+          "path": "registry/pan-input.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "dependencies": [],
+      "devDependencies": [],
+      "tailwind": {},
+      "cssVars": {}
+    }
+  ]
+}
