@@ -10,9 +10,13 @@
         {
           "path": "registry/aadhaar-input.tsx",
           "type": "registry:ui"
+        },
+        {
+          "path": "registry/utils.ts",
+          "type": "registry:lib"
         }
       ],
-      "dependencies": ["lucide-react"],
+      "dependencies": ["lucide-react", "clsx", "tailwind-merge"],
       "devDependencies": [],
       "tailwind": {},
       "cssVars": {}
@@ -25,9 +29,13 @@
         {
           "path": "registry/pan-input.tsx",
           "type": "registry:ui"
+        },
+        {
+          "path": "registry/utils.ts",
+          "type": "registry:lib"
         }
       ],
-      "dependencies": [],
+      "dependencies": ["clsx", "tailwind-merge"],
       "devDependencies": [],
       "tailwind": {},
       "cssVars": {}
@@ -40,9 +48,13 @@
         {
           "path": "registry/otp-input.tsx",
           "type": "registry:ui"
+        },
+        {
+          "path": "registry/utils.ts",
+          "type": "registry:lib"
         }
       ],
-      "dependencies": ["lucide-react"],
+      "dependencies": ["lucide-react", "clsx", "tailwind-merge"],
       "devDependencies": [],
       "tailwind": {},
       "cssVars": {}
