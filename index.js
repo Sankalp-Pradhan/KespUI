@@ -7,8 +7,8 @@ const path = require("path");
 const chalk = require("chalk");
 
 // ── Replace with your actual GitHub username ──────────────────────────────────
-const GITHUB_USER = "yourusername";
-const REPO_NAME = "kesp-ui";
+const GITHUB_USER = "Sankalp-Pradhan";
+const REPO_NAME = "kespUI";
 const BRANCH = "main";
 
 const REGISTRY_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}/registry.json`;
