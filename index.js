@@ -5,6 +5,7 @@ const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 const chalk = require("chalk");
+const { execSync } = require("child_process");
 
 // ── Replace with your actual GitHub username ──────────────────────────────────
 const GITHUB_USER = "Sankalp-Pradhan";
@@ -12,12 +13,12 @@ const REPO_NAME = "kespUI";
 const BRANCH = "main";
 
 const REGISTRY_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}/registry.json`;
-const BASE_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}/registry`;
 
 program
   .name("kesp-ui")
   .description("Add kesp-ui components to your project")
   .version("1.0.0");
+
 
 // ── LIST command ──────────────────────────────────────────────────────────────
 program
@@ -31,7 +32,7 @@ program
       registry.items.forEach((item) => {
         console.log(`  ${chalk.green("◆")} ${chalk.bold(item.name)}`);
         console.log(`    ${chalk.gray(item.description)}`);
-        if (item.dependencies.length > 0) {
+        if (item.dependencies?.length) {
           console.log(`    ${chalk.yellow("deps:")} ${item.dependencies.join(", ")}`);
         }
         console.log();
@@ -40,6 +41,7 @@ program
       console.error(chalk.red("Error fetching registry:"), err.message);
     }
   });
+
 
 // ── ADD command ───────────────────────────────────────────────────────────────
 program
@@ -58,36 +60,51 @@ program
         process.exit(1);
       }
 
-      // Download each file
+      // ── Download files ──────────────────────────────────────────────────────
       for (const file of found.files) {
         const fileName = path.basename(file.path);
-        const fileUrl = `${BASE_URL}/${fileName}`;
+        const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/${BRANCH}/${file.path}`;
+        const destPath = path.join(process.cwd(), options.path, fileName);
+
+        // Prevent overwriting existing files (smart installer behavior)
+        if (fs.existsSync(destPath)) {
+          console.log(chalk.yellow(`  ↷ ${fileName} already exists — skipping`));
+          continue;
+        }
+
         console.log(chalk.gray(`  Downloading ${fileName}...`));
 
         const { data: content } = await axios.get(fileUrl);
 
-        const destPath = path.join(process.cwd(), options.path, fileName);
         await fs.ensureDir(path.dirname(destPath));
         await fs.writeFile(destPath, content, "utf8");
 
         console.log(chalk.green(`  ✔ ${fileName}`) + chalk.gray(` → ${options.path}/${fileName}`));
       }
 
-      // Show dependency install hint
-      const { execSync } = require("child_process");
-
-      // Auto install dependencies
+      // ── Install dependencies (AUTO DETECT PM) ───────────────────────────────
       if (found.dependencies && found.dependencies.length > 0) {
         console.log(chalk.cyan("\nInstalling dependencies...\n"));
 
+        let pkgManager = "npm";
+
+        if (fs.existsSync(path.join(process.cwd(), "pnpm-lock.yaml"))) pkgManager = "pnpm";
+        else if (fs.existsSync(path.join(process.cwd(), "yarn.lock"))) pkgManager = "yarn";
+        else if (fs.existsSync(path.join(process.cwd(), "bun.lockb"))) pkgManager = "bun";
+
+        const installCmd =
+          pkgManager === "npm"
+            ? `npm install ${found.dependencies.join(" ")}`
+            : `${pkgManager} add ${found.dependencies.join(" ")}`;
+
         try {
-          execSync(`npm install ${found.dependencies.join(" ")}`, {
+          execSync(installCmd, {
             stdio: "inherit",
             cwd: process.cwd(),
           });
 
           console.log(chalk.green("\n✔ Dependencies installed\n"));
-        } catch (e) {
+        } catch {
           console.log(chalk.red("Failed to install dependencies"));
         }
       }
@@ -96,10 +113,12 @@ program
       console.log(
         chalk.white(`  import ${toPascalCase(component)} from "@/components/ui/${component}";\n`)
       );
+
     } catch (err) {
       console.error(chalk.red("Error:"), err.message);
     }
   });
+
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 function toPascalCase(str) {
