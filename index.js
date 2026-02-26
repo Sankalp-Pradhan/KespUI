@@ -74,13 +74,22 @@ program
       }
 
       // Show dependency install hint
+      const { execSync } = require("child_process");
+
+      // Auto install dependencies
       if (found.dependencies && found.dependencies.length > 0) {
-        console.log(
-          chalk.yellow(`\n  Install dependencies:\n`) +
-          chalk.white(`  npm install ${found.dependencies.join(" ")}\n`)
-        );
-      } else {
-        console.log();
+        console.log(chalk.cyan("\nInstalling dependencies...\n"));
+
+        try {
+          execSync(`npm install ${found.dependencies.join(" ")}`, {
+            stdio: "inherit",
+            cwd: process.cwd(),
+          });
+
+          console.log(chalk.green("\n✔ Dependencies installed\n"));
+        } catch (e) {
+          console.log(chalk.red("Failed to install dependencies"));
+        }
       }
 
       console.log(chalk.green(`✔ Done! `) + chalk.gray(`Import with:`));

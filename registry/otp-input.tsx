@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useRef, useCallback, useEffect, KeyboardEvent, ClipboardEvent } from "react";
 import { Timer, RotateCcw, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
