@@ -72,6 +72,31 @@
       "devDependencies": [],
       "tailwind": {},
       "cssVars": {}
+    },
+    {
+      "name": "masked-aadhar",
+      "type": "registry:ui",
+      "description": "Masked Aadhaar number display with toggle visibility",
+      "files": [
+        {
+          "path": "registry/maskedAadhar.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/utils.ts",
+          "type": "registry:lib"
+        }
+      ],
+      "dependencies": [
+        "react",
+        "lucide-react",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [],
+      "devDependencies": [],
+      "tailwind": {},
+      "cssVars": {}
     }
   ]
 }
