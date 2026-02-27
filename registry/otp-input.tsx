@@ -150,7 +150,7 @@ const OtpInput = ({
   return (
     <div className={`space-y-4${className ? ` ${className}` : ""}`}>
       {/* Header */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         <ShieldCheck className="h-5 w-5 text-primary" />
         <span className="text-sm font-medium text-foreground">
           Enter {length}-digit OTP
@@ -190,9 +190,8 @@ const OtpInput = ({
         {digits.map((d, i) => (
           <div
             key={i}
-            className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${
-              d ? "bg-primary scale-125" : "bg-muted-foreground/30"
-            }`}
+            className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${d ? "bg-primary scale-125" : "bg-muted-foreground/30"
+              }`}
           />
         ))}
       </div>
