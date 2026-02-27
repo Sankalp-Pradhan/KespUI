@@ -186,7 +186,7 @@ const OtpInput = ({
       </div>
 
       {/* Progress dots */}
-      <div className="flex justify-center gap-1.5">
+      <div className="flex justify-center mt-2 gap-1.5">
         {digits.map((d, i) => (
           <div
             key={i}
