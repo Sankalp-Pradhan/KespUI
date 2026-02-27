@@ -16,7 +16,11 @@
           "type": "registry:lib"
         }
       ],
-      "dependencies": ["lucide-react", "clsx", "tailwind-merge"],
+      "dependencies": [
+        "lucide-react",
+        "clsx",
+        "tailwind-merge"
+      ],
       "devDependencies": [],
       "tailwind": {},
       "cssVars": {}
@@ -35,29 +39,87 @@
           "type": "registry:lib"
         }
       ],
-      "dependencies": ["clsx", "tailwind-merge"],
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
       "devDependencies": [],
       "tailwind": {},
       "cssVars": {}
     },
     {
-      "name": "otp-input",
-      "type": "registry:ui",
-      "description": "OTP input with timer, resend, and auto-validation",
-      "files": [
+      "name": "kesp-ui",
+      "homepage": "https://github.com/yourusername/kesp-ui",
+      "items": [
         {
-          "path": "registry/otp-input.tsx",
-          "type": "registry:ui"
+          "name": "aadhaar-input",
+          "type": "registry:ui",
+          "description": "A validated Aadhaar number input with Verhoeff checksum, progress bar, and formatting.",
+          "files": [
+            {
+              "path": "registry/aadhaar-input.tsx",
+              "type": "registry:ui"
+            },
+            {
+              "path": "registry/utils.ts",
+              "type": "registry:lib"
+            }
+          ],
+          "dependencies": [
+            "lucide-react",
+            "clsx",
+            "tailwind-merge"
+          ],
+          "devDependencies": [],
+          "tailwind": {},
+          "cssVars": {}
         },
         {
-          "path": "registry/utils.ts",
-          "type": "registry:lib"
+          "name": "pan-input",
+          "type": "registry:ui",
+          "description": "A validated PAN Card number input with segment progress bars and format hints.",
+          "files": [
+            {
+              "path": "registry/pan-input.tsx",
+              "type": "registry:ui"
+            },
+            {
+              "path": "registry/utils.ts",
+              "type": "registry:lib"
+            }
+          ],
+          "dependencies": [
+            "clsx",
+            "tailwind-merge"
+          ],
+          "devDependencies": [],
+          "tailwind": {},
+          "cssVars": {}
+        },
+        {
+          "name": "otp-input",
+          "type": "registry:ui",
+          "description": "OTP input with timer, resend, and auto-validation",
+          "files": [
+            {
+              "path": "registry/otp-input.tsx",
+              "type": "registry:ui"
+            },
+            {
+              "path": "registry/utils.ts",
+              "type": "registry:lib"
+            }
+          ],
+          "dependencies": [
+            "lucide-react",
+            "clsx",
+            "tailwind-merge"
+          ],
+          "devDependencies": [],
+          "tailwind": {},
+          "cssVars": {}
         }
-      ],
-      "dependencies": ["lucide-react", "clsx", "tailwind-merge"],
-      "devDependencies": [],
-      "tailwind": {},
-      "cssVars": {}
+      ]
     }
   ]
 }
