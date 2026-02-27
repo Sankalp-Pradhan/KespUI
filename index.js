@@ -82,6 +82,24 @@ program
         console.log(chalk.green(`  ✔ ${fileName}`) + chalk.gray(` → ${options.path}/${fileName}`));
       }
 
+      // ── Install registryDependencies (shadcn components) ──────────────────────
+if (found.registryDependencies && found.registryDependencies.length > 0) {
+  console.log(chalk.cyan("\nInstalling registry dependencies (shadcn components)...\n"));
+
+  for (const dep of found.registryDependencies) {
+    console.log(chalk.gray(`  Installing shadcn component: ${dep}...`));
+    try {
+      execSync(`npx shadcn@latest add ${dep} --yes`, {
+        stdio: "inherit",
+        cwd: process.cwd(),
+      });
+      console.log(chalk.green(`  ✔ ${dep} installed`));
+    } catch {
+      console.log(chalk.yellow(`  ⚠ Could not auto-install "${dep}". Run manually: npx shadcn@latest add ${dep}`));
+    }
+  }
+}
+
       // ── Install dependencies (AUTO DETECT PM) ───────────────────────────────
       if (found.dependencies && found.dependencies.length > 0) {
         console.log(chalk.cyan("\nInstalling dependencies...\n"));
