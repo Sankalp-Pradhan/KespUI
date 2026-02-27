@@ -1,4 +1,4 @@
-# 🇮🇳 kesp-ui
+# kesp-ui
 
 > **Reusable KYC UI components for Indian fintech apps.**
 
