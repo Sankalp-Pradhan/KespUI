@@ -1,6 +1,28 @@
-import React, { useState, useRef, useCallback } from "react";
+"use client";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+import React, { useState, useRef, useCallback, useEffect } from "react";
+
+// ─── Validation utilities ────────────────────────────────────────────────────
+
+const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+
+/** 1. Remove spaces/special chars  2. Convert to uppercase  3. Enforce max 10 chars */
+const sanitize = (input: string): string =>
+  input
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 10);
+
+/** Format for display: "ABCDE 1234 F" */
+const format = (cleaned: string): string => {
+  if (cleaned.length <= 5) return cleaned;
+  if (cleaned.length <= 9) return `${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
+  return `${cleaned.slice(0, 5)} ${cleaned.slice(5, 9)} ${cleaned.slice(9)}`;
+};
+
+/** 3. Check length === 10  4. Test regex pattern */
+const isValid = (cleaned: string): boolean =>
+  cleaned.length === 10 && PAN_REGEX.test(cleaned);
 
 interface Segment {
   label: string;
@@ -8,34 +30,7 @@ interface Segment {
   valid: boolean;
 }
 
-interface PanCardInputProps {
-  value?: string;
-  onChange?: (value: string) => void;
-  onValid?: (value: string) => void;
-  label?: string;
-  error?: string;
-  className?: string;
-}
-
-// ─── Validation utilities ────────────────────────────────────────────────────
-
-const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-
-const sanitize = (input: string): string =>
-  input
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 10);
-
-const format = (cleaned: string): string => {
-  if (cleaned.length <= 5) return cleaned;
-  if (cleaned.length <= 9) return `${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
-  return `${cleaned.slice(0, 5)} ${cleaned.slice(5, 9)} ${cleaned.slice(9)}`;
-};
-
-const isValid = (cleaned: string): boolean =>
-  cleaned.length === 10 && PAN_REGEX.test(cleaned);
-
+/** Segment-level validation hints */
 const getSegments = (cleaned: string): Segment[] => [
   {
     label: "Letters",
@@ -56,42 +51,81 @@ const getSegments = (cleaned: string): Segment[] => [
   },
 ];
 
+// ─── Props ───────────────────────────────────────────────────────────────────
+
+interface PanCardInputProps {
+  value?: string;
+  onChange?: (value: string) => void;
+  onComplete?: (value: string) => void;
+  onValid?: (value: string) => void;
+  className?: string;
+  label?: string;
+  placeholder?: string;
+  error?: boolean;
+  errorMessage?: string;
+  disabled?: boolean;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const PanCardInput: React.FC<PanCardInputProps> = ({
   value: controlledValue,
   onChange,
+  onComplete,
   onValid,
   className = "",
   label = "PAN Card Number",
-  error,
+  placeholder = "ABCDE 1234 F",
+  error = false,
+  errorMessage,
+  disabled = false,
 }) => {
-  const [internal, setInternal] = useState<string>("");
+  const [internalValue, setInternalValue] = useState<string>("");
   const [focused, setFocused] = useState<boolean>(false);
+  const [hasCompletedOnce, setHasCompletedOnce] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const raw = controlledValue !== undefined ? controlledValue : internal;
+  const raw = controlledValue !== undefined ? controlledValue : internalValue;
   const cleaned = sanitize(raw);
   const displayed = format(cleaned);
   const valid = isValid(cleaned);
   const segments = getSegments(cleaned);
-  const showError = !!error || (!focused && cleaned.length > 0 && !valid);
+
+  const complete = cleaned.length === 10;
+  const hasExternalError = error || !!errorMessage;
+  const showInternalError = !focused && cleaned.length > 0 && !valid;
+  const showError = hasExternalError || showInternalError;
+
+  // Fire onComplete when 10 characters are entered (once)
+  useEffect(() => {
+    if (complete && !hasCompletedOnce && onComplete) {
+      onComplete(cleaned);
+      setHasCompletedOnce(true);
+    }
+    if (!complete && hasCompletedOnce) {
+      setHasCompletedOnce(false);
+    }
+  }, [complete, cleaned, onComplete, hasCompletedOnce]);
 
   const barClass = (seg: Segment): string => {
+    if (disabled) return "bg-gray-200";
     if (!seg.done) return "bg-gray-200";
     if (!seg.valid) return "bg-red-400";
     if (valid) return "bg-green-500";
     return "bg-blue-500";
   };
 
+  // 5. onChange / onValid callbacks
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const next = sanitize(e.target.value);
+      if (disabled) return;
+
+      const next = sanitize(e.target.value); // steps 1, 2, 3
 
       if (onChange) onChange(next);
-      else setInternal(next);
+      else setInternalValue(next);
 
-      if (isValid(next) && onValid) onValid(next);
+      if (isValid(next) && onValid) onValid(next); // step 4 + 5
 
       requestAnimationFrame(() => {
         if (inputRef.current) {
@@ -100,29 +134,44 @@ const PanCardInput: React.FC<PanCardInputProps> = ({
         }
       });
     },
-    [onChange, onValid]
+    [onChange, onValid, disabled],
   );
 
-  const borderClass = focused
-    ? "border-blue-500 ring-2 ring-blue-100"
-    : valid
-    ? "border-green-500 ring-2 ring-green-100"
-    : showError
-    ? "border-red-400 ring-2 ring-red-100"
-    : "border-gray-200 hover:border-gray-400";
+  const borderClass = disabled
+    ? "border-gray-200 bg-gray-50"
+    : focused
+      ? "border-blue-500 ring-2 ring-blue-100"
+      : valid && !hasExternalError
+        ? "border-green-500 ring-2 ring-green-100"
+        : showError
+          ? "border-red-400 ring-2 ring-red-100"
+          : "border-gray-200 hover:border-gray-400";
 
-  const helperText = (): { text: string; cls: string } => {
-    if (showError && error) return { text: error, cls: "text-red-500" };
-    if (cleaned.length === 0)
+  interface HelperText {
+    text: string;
+    cls: string;
+  }
+
+  const helperText = (): HelperText => {
+    if (hasExternalError && errorMessage) {
+      return { text: errorMessage, cls: "text-red-500" };
+    }
+    if (showInternalError && !hasExternalError) {
+      const badSeg = segments.find((s) => s.done && !s.valid);
+      if (badSeg) {
+        return {
+          text: `Invalid characters in ${badSeg.label} section`,
+          cls: "text-red-500",
+        };
+      }
+      return { text: "Invalid PAN number", cls: "text-red-500" };
+    }
+    if (cleaned.length === 0) {
       return { text: "Format: ABCDE1234F", cls: "text-gray-400" };
-    if (valid)
+    }
+    if (valid && !hasExternalError) {
       return { text: "✓ Valid PAN number", cls: "text-green-600 font-medium" };
-    const badSeg = segments.find((s) => s.done && !s.valid);
-    if (badSeg)
-      return {
-        text: `Invalid characters in ${badSeg.label} section`,
-        cls: "text-red-500",
-      };
+    }
     return { text: `${cleaned.length}/10 characters`, cls: "text-gray-400" };
   };
 
@@ -137,12 +186,17 @@ const PanCardInput: React.FC<PanCardInputProps> = ({
       )}
 
       <div
-        className={`relative flex items-center rounded-xl border-2 bg-white px-4 py-3 cursor-text transition-all duration-200 ${borderClass}`}
-        onClick={() => inputRef.current?.focus()}
+        className={`relative flex items-center rounded-xl border-2 bg-white px-4 py-3 transition-all duration-200 ${disabled ? "cursor-not-allowed" : "cursor-text"} ${borderClass}`}
+        onClick={() => !disabled && inputRef.current?.focus()}
       >
+        {/* File icon */}
         <svg
           className={`mr-3 h-5 w-5 shrink-0 transition-colors duration-200 ${
-            focused ? "text-blue-500" : "text-gray-400"
+            disabled
+              ? "text-gray-300"
+              : focused
+                ? "text-blue-500"
+                : "text-gray-400"
           }`}
           viewBox="0 0 24 24"
           fill="none"
@@ -163,20 +217,26 @@ const PanCardInput: React.FC<PanCardInputProps> = ({
           type="text"
           autoComplete="off"
           spellCheck={false}
-          placeholder="ABCDE 1234 F"
+          placeholder={placeholder}
           value={displayed}
           onChange={handleChange}
-          onFocus={() => setFocused(true)}
+          onFocus={() => !disabled && setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="flex-1 bg-transparent text-lg font-mono tracking-widest text-gray-800 placeholder-gray-300 outline-none uppercase"
+          disabled={disabled}
+          className={`flex-1 bg-transparent text-lg font-mono tracking-widest outline-none uppercase ${
+            disabled
+              ? "text-gray-400 placeholder-gray-300 cursor-not-allowed"
+              : "text-gray-800 placeholder-gray-300"
+          }`}
           maxLength={12}
           aria-label="PAN Card Number"
           aria-invalid={showError}
           aria-describedby="pan-helper"
+          aria-disabled={disabled}
         />
 
         <div className="ml-2 shrink-0">
-          {valid ? (
+          {valid && !hasExternalError && !disabled ? (
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white pan-bounce">
               <svg
                 className="h-4 w-4"
@@ -188,7 +248,7 @@ const PanCardInput: React.FC<PanCardInputProps> = ({
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
-          ) : showError ? (
+          ) : showError && !disabled ? (
             <svg
               className="h-5 w-5 text-red-400"
               viewBox="0 0 24 24"
